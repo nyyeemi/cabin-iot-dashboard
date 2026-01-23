@@ -1,16 +1,18 @@
 services:
-  iot-backend:
+  backend:
     build: ./backend
     ports:
       - "8000:8000"
-   
-    volumes:
-      - ./backend/app:/code/app
-    command: ["fastapi", "run", "app/main.py", "--reload","--host", "0.0.0.0", "--port", "8000"]
+    develop: 
+      watch:
+        - action: sync
+          path: ./backend/app
+          target: /code/app
+    command: ["fastapi", "run", "app/main.py","--reload", "--port", "8000"]
   iot-device:
     build: ./devices
     environment:
-      - INGEST_URL=http://iot-backend:8000/ingest
+      - INGEST_URL=http://backend:8000/ingest
     command: ["python", "temperature.py", "--device-id", "device_1"]
     depends_on:
-      - iot-backend
+      - backend
