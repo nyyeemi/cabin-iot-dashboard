@@ -9,6 +9,9 @@ services:
           path: ./backend/app
           target: /code/app
     command: ["fastapi", "run", "app/main.py","--reload", "--port", "8000"]
+    depends_on:
+      db:
+        condition: service_healthy
   iot-device:
     build: ./devices
     environment:
@@ -16,3 +19,20 @@ services:
     command: ["python", "temperature.py", "--device-id", "device_1"]
     depends_on:
       - backend
+  db:
+    image: postgres:18
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+    restart: always
+    volumes:
+      - db-data:/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+volumes:
+  db-data:
