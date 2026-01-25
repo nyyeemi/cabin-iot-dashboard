@@ -1,7 +1,6 @@
 from datetime import datetime
 import time
 import random
-import uuid
 import requests
 import logging
 import os
@@ -14,12 +13,35 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 INGEST_URL = os.environ.get("INGEST_URL", "http://localhost:8000/ingest")
+REGISTER_URL = os.environ.get("REGISTER_URL", "http://localhost:8000/devices/register")
+DEVICE_NAME = os.environ.get("HOSTNAME", "default")
 
-DEVICE_ID = str(uuid.uuid4())
-print(f"Using device ID: {DEVICE_ID}")
-SLEEP_INTERVAL = 10
-RETRY_INTERVAL = 1
+SLEEP_INTERVAL = 30
+RETRY_INTERVAL = 5
 NUM_RETRIES = 5
+
+
+def assign_uuid():
+    retries = NUM_RETRIES
+    while True:
+        try:
+            r = requests.post(REGISTER_URL, json={"name": DEVICE_NAME})
+            r.raise_for_status()
+            device_id = r.json()["device_id"]
+            logger.info(f"Successfully assigned id: {device_id}")
+            return device_id
+        except (requests.ConnectionError, requests.HTTPError) as e:
+            if retries == 0:
+                logger.error("Max retries exceeded. Shutting down.")
+                raise e
+            logger.error(
+                f"Error registering device {e}, retrying in {RETRY_INTERVAL} seconds. {retries} retries remaining."
+            )
+            retries -= 1
+            time.sleep(RETRY_INTERVAL)
+
+
+DEVICE_ID = assign_uuid()
 
 
 def generate_payload():
