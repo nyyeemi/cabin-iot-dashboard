@@ -1,7 +1,8 @@
+from datetime import datetime
 import time
 import random
+import uuid
 import requests
-import argparse
 import logging
 import os
 
@@ -14,17 +15,7 @@ logger = logging.getLogger()
 
 INGEST_URL = os.environ.get("INGEST_URL", "http://localhost:8000/ingest")
 
-parser = argparse.ArgumentParser(description="Run mock IoT device")
-parser.add_argument(
-    "--device-id",
-    "-d",
-    type=str,
-    default="cabin_node_1",
-    help="ID of the device (defaults to 'cabin_node_1')",
-)
-args = parser.parse_args()
-
-DEVICE_ID = args.device_id
+DEVICE_ID = str(uuid.uuid4())
 print(f"Using device ID: {DEVICE_ID}")
 SLEEP_INTERVAL = 10
 RETRY_INTERVAL = 1
@@ -34,8 +25,8 @@ NUM_RETRIES = 5
 def generate_payload():
     payload = {
         "device_id": DEVICE_ID,
-        "temperature": random.normalvariate(20, 5),
-        "light": random.randint(200, 500),
+        "temp": random.normalvariate(20, 5),
+        "ts": str(datetime.now()),
     }
 
     return payload
@@ -49,12 +40,10 @@ def ingest_server(payload: dict):
             r = requests.post(INGEST_URL, json=payload)
             if r.status_code != 200:
                 logger.error(
-                    f"Failed POST - status: {r.status_code}, response: {r.json()}"
+                    f"Failed POST - status: {r.status_code}, response: {r.text}"
                 )
             else:
-                logger.info(
-                    f"Successfully ingested payload, server response: {r.json()}"
-                )
+                logger.info(f"Successfully ingested payload, server response: {r.text}")
             return
         except requests.ConnectionError as ce:
             if retries == 0:
