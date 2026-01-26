@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlmodel import SQLModel, func, select
 
 from app.db import SessionDep, create_db_and_tables
-from app.models import Telemetry, Device
+from app.models import Device, Telemetry, TelemetryCreate
 
 
 # todo: move to alembic, only for quick local dev
@@ -69,13 +69,14 @@ def read_device_by_id(device_id: uuid.UUID, session: SessionDep):
 
 
 @app.post("/ingest")
-def ingest(data: Telemetry, session: SessionDep):
+def ingest(data: TelemetryCreate, session: SessionDep):
     device = session.get(Device, data.device_id)
     if not device:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Device not registered"
         )
-    session.add(data)
+    telemetry = Telemetry(**data.model_dump())
+    session.add(telemetry)
     session.commit()
-    session.refresh(data)
-    return data
+    session.refresh(telemetry)
+    return telemetry

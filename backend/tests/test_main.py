@@ -1,3 +1,4 @@
+from datetime import datetime
 import uuid
 from fastapi.testclient import TestClient
 from fastapi import status
@@ -6,7 +7,7 @@ from sqlmodel import SQLModel, Session, create_engine
 from sqlmodel.pool import StaticPool
 from app.main import app
 from app.db import get_session
-from app.models.device import Device
+from app.models import Device
 
 
 @pytest.fixture(name="session")
@@ -41,7 +42,7 @@ def test_create_device(client: TestClient):
 
 def test_create_device_incomplete(client: TestClient):
     response = client.post("/devices")
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 def test_create_device_invalid(client: TestClient):
@@ -49,7 +50,7 @@ def test_create_device_invalid(client: TestClient):
         "/devices",
         json={"name": 600},
     )
-    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 def test_create_device_duplicate(session: Session, client: TestClient):
@@ -99,3 +100,44 @@ def test_read_devices(session: Session, client: TestClient):
     assert devices[0]["id"] == str(device_1.id)
     assert devices[1]["name"] == device_2.name
     assert devices[1]["id"] == str(device_2.id)
+
+
+def test_ingest(session: Session, client: TestClient):
+    device = Device(name="test")
+    session.add(device)
+    session.commit()
+
+    ts = datetime.now().isoformat()
+    temp = 0.9
+    id = str(device.id)
+
+    payload = {"device_id": id, "temp": temp, "ts": ts}
+    print(payload)
+    response = client.post("/ingest", json=payload)
+
+    data = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert data["device_id"] == str(device.id)
+    assert data["ts"] == ts
+    assert data["temp"] == temp
+
+
+def test_ingest_unknown_device(session: Session, client: TestClient):
+    payload = {"device_id": str(uuid.uuid4()), "temp": 0.1, "ts": str(datetime.now())}
+    response = client.post("/ingest", json=payload)
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_ingest_incomplete(client: TestClient):
+    response = client.post("/ingest")
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+
+
+def test_ingest_invalid(client: TestClient):
+    response = client.post(
+        "/ingest",
+        json={"name": 600, "device_id": 30},
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
