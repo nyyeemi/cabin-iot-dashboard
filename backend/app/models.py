@@ -13,6 +13,10 @@ class TelemetryCreate(TelemetryBase):
     pass
 
 
+class TelemetryPublic(TelemetryBase):
+    pass
+
+
 # db model
 class Telemetry(TelemetryBase, table=True):
     id: uuid.UUID | None = Field(default_factory=uuid.uuid4, primary_key=True)

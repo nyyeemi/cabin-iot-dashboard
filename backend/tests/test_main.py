@@ -7,7 +7,7 @@ from sqlmodel import SQLModel, Session, create_engine
 from sqlmodel.pool import StaticPool
 from app.main import app
 from app.db import get_session
-from app.models import Device
+from app.models import Device, Telemetry
 
 
 @pytest.fixture(name="session")
@@ -100,6 +100,50 @@ def test_read_devices(session: Session, client: TestClient):
     assert devices[0]["id"] == str(device_1.id)
     assert devices[1]["name"] == device_2.name
     assert devices[1]["id"] == str(device_2.id)
+
+
+def test_read_device_telemetry(session: Session, client: TestClient):
+    device = Device(name="test-101")
+    session.add(device)
+    session.commit()
+
+    telemetry_1 = Telemetry(device_id=device.id, ts=datetime.now(), temp=21.5)
+    telemetry_2 = Telemetry(device_id=device.id, ts=datetime.now(), temp=21.6)
+    session.add_all([telemetry_1, telemetry_2])
+    session.commit()
+    response = client.get(f"/devices/{device.id}/telemetry")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert len(data) == 2
+
+    assert data[0]["device_id"] == str(device.id)
+    assert data[0]["temp"] == telemetry_1.temp
+    assert data[0]["ts"] == telemetry_1.ts.isoformat()
+
+    assert data[1]["device_id"] == str(device.id)
+    assert data[1]["temp"] == telemetry_2.temp
+    assert data[1]["ts"] == telemetry_2.ts.isoformat()
+
+
+def test_read_device_telemetry_latest(session: Session, client: TestClient):
+    device = Device(name="test-101")
+    session.add(device)
+    session.commit()
+
+    telemetry_1 = Telemetry(device_id=device.id, ts=datetime.now(), temp=21.5)
+    telemetry_2 = Telemetry(device_id=device.id, ts=datetime.now(), temp=21.6)
+    session.add_all([telemetry_1, telemetry_2])
+    session.commit()
+    response = client.get(f"/devices/{device.id}/telemetry/latest")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["device_id"] == str(device.id)
+    assert data["temp"] == telemetry_2.temp
+    assert data["ts"] == telemetry_2.ts.isoformat()
 
 
 def test_ingest(session: Session, client: TestClient):
