@@ -26,3 +26,16 @@ class Telemetry(TelemetryBase, table=True):
 class Device(SQLModel, table=True):
     id: uuid.UUID | None = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = Field(unique=True)
+
+
+class DeviceCreate(SQLModel):
+    name: str
+
+
+class DeviceCreateResponse(SQLModel):
+    id: uuid.UUID
+
+
+class DevicesPublic(SQLModel):
+    data: list[Device]
+    count: int

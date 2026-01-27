@@ -1,11 +1,18 @@
 from contextlib import asynccontextmanager
 import uuid
 from fastapi import FastAPI, HTTPException, status
-from pydantic import BaseModel
-from sqlmodel import SQLModel, func, select
+from sqlmodel import func, select
 
 from app.db import SessionDep, create_db_and_tables
-from app.models import Device, Telemetry, TelemetryCreate, TelemetryPublic
+from app.models import (
+    Device,
+    DeviceCreate,
+    DeviceCreateResponse,
+    DevicesPublic,
+    Telemetry,
+    TelemetryCreate,
+    TelemetryPublic,
+)
 
 
 # todo: move to alembic, only for quick local dev
@@ -18,19 +25,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-class DeviceIn(BaseModel):
-    name: str
-
-
-class RegisterResponse(BaseModel):
-    id: uuid.UUID
-
-
-class DevicesPublic(SQLModel):
-    data: list[Device]
-    count: int
-
-
 @app.get("/devices", response_model=DevicesPublic)
 def read_devices(session: SessionDep, offset: int = 0, limit: int = 100):
     count_statement = select(func.count()).select_from(Device)
@@ -41,8 +35,8 @@ def read_devices(session: SessionDep, offset: int = 0, limit: int = 100):
     return DevicesPublic(data=devices, count=count)
 
 
-@app.post("/devices", response_model=RegisterResponse)
-def register_device(device_in: DeviceIn, session: SessionDep):
+@app.post("/devices", response_model=DeviceCreateResponse)
+def register_device(device_in: DeviceCreate, session: SessionDep):
     """Create a device, return id + api key, mainly used by devices on registration"""
     stmt = select(Device).where(Device.name == device_in.name)
     device = session.exec(stmt).first()
@@ -96,6 +90,7 @@ def read_device_telemetry_latest(device_id: uuid.UUID, session: SessionDep):
     return latest
 
 
+# NOTE: /ingest for raspi, change to more restful /telemetry here
 @app.post("/ingest")
 def ingest(data: TelemetryCreate, session: SessionDep):
     device = session.get(Device, data.device_id)
