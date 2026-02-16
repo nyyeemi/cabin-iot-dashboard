@@ -27,7 +27,7 @@ def assign_uuid():
         try:
             r = requests.post(REGISTER_URL, json={"name": DEVICE_NAME})
             r.raise_for_status()
-            device_id = r.json()["device_id"]
+            device_id = r.json()["id"]
             logger.info(f"Successfully assigned id: {device_id}")
             return device_id
         except (requests.ConnectionError, requests.HTTPError) as e:

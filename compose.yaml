@@ -18,7 +18,7 @@ services:
     build: ./devices
     environment:
       - INGEST_URL=http://backend:8000/ingest
-      - REGISTER_URL=http://backend:8000/devices/register
+      - REGISTER_URL=http://backend:8000/devices
     command: ["python", "temperature.py", "--device-id", "device_1"]
     depends_on:
       - backend
