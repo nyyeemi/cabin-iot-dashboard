@@ -1,16 +1,4 @@
-import { Thermometer, Droplets } from 'lucide-react';
-import clsx from 'clsx';
-import { DeviceOverview, OverviewRead, SensorReading } from '@/app/lib/types';
-import Link from 'next/link';
-import Overview from '../ui/dashboard/overview';
-
-const locations = [
-  { location_name: 'Mäntyranta' },
-  { location_name: 'Koti' },
-  { location_name: 'Office' },
-  { location_name: 'Mökki' },
-  { location_name: 'Harjumänty' },
-];
+import { OverviewRead } from '@/app/lib/types';
 
 const overviewMock: OverviewRead = {
   data: [
@@ -55,23 +43,21 @@ const overviewMock: OverviewRead = {
   ],
 };
 
-export default async function Page(props: {
-  searchParams?: Promise<{
-    location?: string;
-  }>;
-}) {
-  //const overview = await fetchOverview();
-  const searchParams = await props.searchParams;
-  const location = searchParams?.location;
-  const overview = overviewMock;
+function fetchMockLocationOverview(locationId: string) {
+  return overviewMock.data.find((l) => l.location_id === locationId);
+}
 
-  const selectedId = location ?? overview.data[0]?.location_id;
+export default async function Page(props: { params: Promise<{ locationId: string }> }) {
+  const params = await props.params;
+  const id = params.locationId;
+
+  // const location = await fetchLocationOverview(locationId)
+  const locationOverview = fetchMockLocationOverview(id);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col bg-white p-4 dark:bg-black">
-        <h1 className="text-4xl font-bold">Overview</h1>
-        <Overview overview={overview} selectedId={selectedId} />
+      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between bg-white px-16 py-32 sm:items-start dark:bg-black">
+        <p>Device with id: {id}</p>
       </main>
     </div>
   );
