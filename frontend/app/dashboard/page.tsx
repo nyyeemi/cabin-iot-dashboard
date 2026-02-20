@@ -12,7 +12,7 @@ const locations = [
   { location_name: 'Harjumänty' },
 ];
 
-const overviewMock: OverviewRead = {
+export const overviewMock: OverviewRead = {
   data: [
     {
       location_id: 'c0041f6c-bfa5-4b8d-9ff4-e701ea8212ed',
@@ -55,23 +55,15 @@ const overviewMock: OverviewRead = {
   ],
 };
 
-export default async function Page(props: {
-  searchParams?: Promise<{
-    location?: string;
-  }>;
-}) {
+export default async function Page() {
   //const overview = await fetchOverview();
-  const searchParams = await props.searchParams;
-  const location = searchParams?.location;
   const overview = overviewMock;
-
-  const selectedId = location ?? overview.data[0]?.location_id;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col bg-white p-4 dark:bg-black">
-        <h1 className="text-4xl font-bold">Overview</h1>
-        <Overview overview={overview} selectedId={selectedId} />
+      <main className="flex min-h-screen w-full max-w-4xl flex-col bg-white p-4 dark:bg-black">
+        <h1 className="pt-6 pb-2 text-4xl font-bold tracking-tight">Overview</h1>
+        <Overview overview={overview} />
       </main>
     </div>
   );

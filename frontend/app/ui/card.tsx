@@ -1,6 +1,6 @@
 import { DeviceOverview, Overview, SensorReading } from '@/app/lib/types';
 import clsx from 'clsx';
-import { Thermometer, Droplets } from 'lucide-react';
+import { Thermometer, Droplets, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 //section list type secction, renders cards for each device in location
@@ -8,8 +8,15 @@ export default function LocationSection({ location }: { location: Overview }) {
   const devices = location.devices;
   return (
     <>
-      <h2 className="mt-4 mb-4 text-3xl font-semibold">{location.location_name}</h2>
-      <div className="flex flex-col gap-6">
+      <Link
+        className="my-2 flex flex-row items-center gap-1 transition-opacity duration-200 active:opacity-70"
+        href={`/dashboard/locations/${location.location_id}`}
+      >
+        <h2 className="my-2 text-xl font-semibold">{location.location_name}</h2>
+        <ChevronRight className="text-zinc-500" />
+      </Link>
+
+      <div className="flex flex-col gap-4">
         {devices.map((d) => (
           <DeviceCard key={d.device_id} device={d} />
         ))}

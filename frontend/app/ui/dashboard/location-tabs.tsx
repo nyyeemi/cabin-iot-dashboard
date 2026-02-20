@@ -17,12 +17,26 @@ export default function LocationTabs({ locations, selected }: Props) {
 
   function onSelect(id: string) {
     const params = new URLSearchParams(searchParams);
-    params.set('location', id);
-    replace(`${pathname}?${params.toString()}`);
+    if (id === 'all') {
+      params.delete('location');
+    } else {
+      params.set('location', id);
+    }
+    replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
   return (
     <div className="flex w-full flex-row gap-2 overflow-x-auto px-2 py-4">
+      <button
+        onClick={() => onSelect('all')}
+        className={clsx(
+          'rounded-2xl px-3 transition-all duration-200',
+          selected === 'all' ? 'font-semibold ring-2' : 'ring-1 ring-zinc-700',
+        )}
+      >
+        All Locations
+      </button>
+
       {locations.map((loc) => (
         <button
           onClick={() => onSelect(loc.location_id)}
