@@ -1,16 +1,6 @@
-import { Thermometer, Droplets } from 'lucide-react';
-import clsx from 'clsx';
-import { DeviceOverview, OverviewRead, SensorReading } from '@/app/lib/types';
-import Link from 'next/link';
+import { OverviewRead } from '@/app/lib/types';
 import Overview from '../ui/dashboard/overview';
-
-const locations = [
-  { location_name: 'Mäntyranta' },
-  { location_name: 'Koti' },
-  { location_name: 'Office' },
-  { location_name: 'Mökki' },
-  { location_name: 'Harjumänty' },
-];
+import { Ellipsis, HousePlus } from 'lucide-react';
 
 export const overviewMock: OverviewRead = {
   data: [
@@ -55,15 +45,23 @@ export const overviewMock: OverviewRead = {
   ],
 };
 
-export default async function Page() {
+export default async function Page(props: { searchParams?: Promise<{ location?: string }> }) {
   //const overview = await fetchOverview();
   const overview = overviewMock;
+  const searchParams = await props.searchParams;
+  const selectedId = searchParams?.location ?? 'all';
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-4xl flex-col bg-white p-4 dark:bg-black">
-        <h1 className="pt-6 pb-2 text-4xl font-bold tracking-tight">Overview</h1>
-        <Overview overview={overview} />
+      <main className="flex min-h-screen w-full max-w-3xl flex-col bg-white p-4 dark:bg-black">
+        <header className="flex justify-end">
+          <div className="bg-blur-lg flex flex-row gap-6 rounded-4xl bg-zinc-950 px-4 py-2 ring-1 ring-zinc-700">
+            <HousePlus className="h-6 w-6" />
+            <Ellipsis className="h-6 w-6" />
+          </div>
+        </header>
+        <h1 className="pb-2 text-4xl font-bold tracking-tight">Overview</h1>
+        <Overview overview={overview} selectedLocationId={selectedId} />
       </main>
     </div>
   );

@@ -1,0 +1,86 @@
+import { DeviceOverview, Overview, SensorReading } from '@/app/lib/types';
+import clsx from 'clsx';
+import { Thermometer, Droplets, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+
+export default function LocationOverview({ location }: { location: Overview }) {
+  const devices = location.devices;
+  return (
+    <>
+      <Link
+        className="my-2 flex flex-row items-center gap-1 transition-opacity duration-200 active:opacity-70"
+        href={`/dashboard/locations/${location.location_id}`}
+      >
+        <span className="my-2 text-xl font-semibold">{location.location_name}</span>
+        <ChevronRight className="text-zinc-500" />
+      </Link>
+
+      <div className="flex flex-col gap-4">
+        {devices.map((d) => (
+          <DeviceCard key={d.device_id} device={d} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function DeviceCardHeader({ device }: { device: DeviceOverview }) {
+  return (
+    <div className="flex flex-row items-center px-4 py-1">
+      <h3 className="font-semibold text-zinc-400">{device.device_name}</h3>
+
+      <span
+        className={clsx('mx-2 inline-block h-1 w-1 rounded-full ring-2', {
+          'bg-green-600 ring-green-400': device.status === 'online',
+          'bg-red-800 ring-red-600': device.status === 'offline',
+        })}
+      />
+    </div>
+  );
+}
+
+function DeviceCard({ device }: { device: DeviceOverview }) {
+  return (
+    <div className="flex flex-col">
+      <DeviceCardHeader device={device} />
+
+      <Link
+        className="rounded-3xl bg-zinc-950 px-4 transition delay-75 duration-200 hover:border-zinc-600 hover:bg-zinc-950/50"
+        href={`/dashboard/devices/${device.device_id}`}
+      >
+        <ul className="gap-4 divide-y divide-zinc-800">
+          {device.latest_readings.map((r) => (
+            <li key={r.sensor_type}>
+              <SensorListItem reading={r} />
+            </li>
+          ))}
+        </ul>
+      </Link>
+    </div>
+  );
+}
+
+const iconMap = {
+  temperature: Thermometer,
+  humidity: Droplets,
+};
+
+function SensorListItem({ reading }: { reading: SensorReading }) {
+  const Icon = iconMap[reading.sensor_type as 'temperature' | 'humidity'];
+  const capitalize = (input: string) => input.charAt(0).toUpperCase() + input.slice(1);
+
+  return (
+    <div className={'flex w-full flex-row items-center justify-between gap-6 py-4 text-amber-500'}>
+      <div className="flex flex-col gap-4 font-semibold">
+        <p>{capitalize(reading.sensor_type)}</p>
+        <p className="text-3xl font-semibold text-zinc-50">
+          {reading.value} {reading.unit}
+        </p>
+      </div>
+
+      <div className={'rounded-full bg-amber-500/5 p-4'}>
+        <Icon className={'h-8 w-8'} />
+      </div>
+    </div>
+  );
+}

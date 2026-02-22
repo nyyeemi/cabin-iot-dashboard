@@ -1,26 +1,27 @@
-'use client';
-
 import LocationTabs from './location-tabs';
 import { OverviewRead } from '@/app/lib/types';
-import LocationSection from '../card';
-import { useSearchParams } from 'next/navigation';
+import LocationOverview from './location-overview';
 
-export default function Overview({ overview }: { overview: OverviewRead }) {
-  const searchParams = useSearchParams();
+type Props = {
+  overview: OverviewRead;
+  selectedLocationId: string;
+};
 
-  const selectedId = searchParams.get('location') || 'all';
+export default function Overview({ overview, selectedLocationId }: Props) {
   const locations = overview.data;
 
   const visibleLocations =
-    selectedId === 'all' ? locations : locations.filter((loc) => loc.location_id === selectedId);
+    selectedLocationId === 'all'
+      ? locations
+      : locations.filter((loc) => loc.location_id === selectedLocationId);
 
   return (
     <>
-      <LocationTabs locations={locations} selected={selectedId} />
+      <LocationTabs locations={locations} selected={selectedLocationId} />
 
       <div className="flex flex-col pb-10">
         {visibleLocations.map((loc) => (
-          <LocationSection key={loc.location_id} location={loc} />
+          <LocationOverview key={loc.location_id} location={loc} />
         ))}
       </div>
     </>
