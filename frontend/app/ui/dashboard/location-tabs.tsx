@@ -25,7 +25,15 @@ export default function LocationTabs({ locations, selected }: Props) {
   );
 }
 
-function TabPill({ isActive, href, title }: { isActive: boolean; href: Url; title: string }) {
+export function TabPill({
+  isActive,
+  href,
+  title,
+}: {
+  isActive: boolean;
+  href: Url;
+  title: string;
+}) {
   return (
     <Link
       href={href}

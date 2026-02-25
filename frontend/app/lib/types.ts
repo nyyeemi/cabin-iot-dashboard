@@ -8,12 +8,6 @@ export type DeviceResponse = {
   count: number;
 };
 
-export type Telemetry = {
-  device_id: string;
-  temp: number;
-  ts: string;
-};
-
 export type SensorReading = {
   sensor_type: string;
   unit?: string | null;
@@ -36,4 +30,33 @@ export type Overview = {
 
 export type OverviewRead = {
   data: Overview[];
+};
+
+export type TelemetryRead = {
+  sensor_type: string;
+  unit: string;
+  mean: number;
+  range: {
+    min: number;
+    max: number;
+  };
+  data: [{ ts: string; value: number }];
+};
+
+type SensorOverview = {
+  id: number;
+  sensor_type: string;
+  unit: string;
+};
+
+export type DeviceDetail = {
+  id: string;
+  device_name: string;
+  location_name: string;
+  room: string;
+  status: string;
+  last_seen: string;
+  created_at: string;
+  uptime: number;
+  sensors: SensorOverview[];
 };

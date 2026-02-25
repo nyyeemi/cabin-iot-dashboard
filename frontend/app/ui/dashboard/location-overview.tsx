@@ -45,8 +45,9 @@ function DeviceCard({ device }: { device: DeviceOverview }) {
       <DeviceCardHeader device={device} />
 
       <Link
-        className="rounded-3xl bg-zinc-950 px-4 transition delay-75 duration-200 hover:border-zinc-600 hover:bg-zinc-950/50"
+        className="rounded-3xl bg-zinc-900 px-4 transition-colors duration-200 active:bg-zinc-900/70"
         href={`/dashboard/devices/${device.device_id}`}
+        scroll={true}
       >
         <ul className="gap-4 divide-y divide-zinc-800">
           {device.latest_readings.map((r) => (

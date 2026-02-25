@@ -1,28 +1,6 @@
-import { DeviceResponse, OverviewRead, Telemetry } from './types';
+import { DeviceDetail, OverviewRead, TelemetryRead } from './types';
 
 const BASE_URL = process.env.PUBLIC_API_BASE;
-
-export async function fetchDevices() {
-  try {
-    const data = await fetch(`${BASE_URL}/devices`);
-    const devices: DeviceResponse = await data.json();
-    return devices;
-  } catch (error) {
-    console.error('Error fetching data', error);
-    throw new Error('Failed to fetch card data');
-  }
-}
-
-export async function fetchTelemetryLatest(device_id: string) {
-  try {
-    const data = await fetch(`${BASE_URL}/devices/${device_id}/telemetry/latest`);
-    const latest_reading: Telemetry = await data.json();
-    return latest_reading;
-  } catch (error) {
-    console.error('Error fetching data', error);
-    throw new Error('Failed to fetch telemetry data');
-  }
-}
 
 export async function fetchOverview() {
   try {
@@ -32,5 +10,33 @@ export async function fetchOverview() {
   } catch (error) {
     console.error('Error fetching data', error);
     throw new Error('Failed to fetch overview data');
+  }
+}
+
+export async function fetchTelemetry(
+  deviceId: string,
+  sensorName: string,
+  range: 'day' | 'week' | 'month' | 'year',
+) {
+  try {
+    const data = await fetch(
+      `${BASE_URL}/devices/${deviceId}/telemetry?sensor_name=${sensorName}&range=${range}`,
+    );
+    const telemetry: TelemetryRead = await data.json();
+    return telemetry.data;
+  } catch (error) {
+    console.error('Error fetching data', error);
+    throw new Error('Failed to fetch telemetry');
+  }
+}
+
+export async function fetchDeviceOverview(id: string) {
+  try {
+    const data = await fetch(`${BASE_URL}/devices/${id}/`);
+    const deviceDetail: DeviceDetail = await data.json();
+    return deviceDetail;
+  } catch (error) {
+    console.error('Error fetching data', error);
+    throw new Error('Failed to fetch telemetry');
   }
 }

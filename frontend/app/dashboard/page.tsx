@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { OverviewRead } from '@/app/lib/types';
 import Overview from '../ui/dashboard/overview';
 import { Ellipsis, HousePlus } from 'lucide-react';
@@ -52,10 +53,10 @@ export default async function Page(props: { searchParams?: Promise<{ location?: 
   const selectedId = searchParams?.location ?? 'all';
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col bg-white p-4 dark:bg-black">
+    <div className="relative flex min-h-screen items-center justify-center font-sans">
+      <main className="flex min-h-screen w-full max-w-3xl flex-col p-4">
         <header className="flex justify-end">
-          <div className="bg-blur-lg flex flex-row gap-6 rounded-4xl bg-zinc-950 px-4 py-2 ring-1 ring-zinc-700">
+          <div className="bg-blur-lg flex flex-row gap-6 rounded-4xl bg-zinc-950/50 px-4 py-2 ring-1 ring-zinc-700">
             <HousePlus className="h-6 w-6" />
             <Ellipsis className="h-6 w-6" />
           </div>

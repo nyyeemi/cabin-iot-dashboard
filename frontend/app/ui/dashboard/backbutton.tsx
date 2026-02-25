@@ -1,18 +1,13 @@
-'use client';
-
 import { ChevronLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function BackButton() {
-  const router = useRouter();
-
   return (
-    <button
-      onClick={() => router.back()}
-      className="flex items-center transition-opacity active:opacity-70"
+    <Link
+      href="/dashboard"
+      className="flex items-center rounded-full bg-zinc-800/50 p-1 ring-1 ring-zinc-800 backdrop-blur-sm transition duration-200 active:scale-125 active:bg-zinc-200/20"
     >
-      <ChevronLeft className="mr-1 h-8 w-8" />
-      <span>Overview</span>
-    </button>
+      <ChevronLeft className="my-0.5 mr-1 h-8 w-8" />
+    </Link>
   );
 }
