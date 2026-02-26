@@ -22,6 +22,9 @@ class DeviceBase(SQLModel):
 class Device(DeviceBase, table=True):
     id: uuid.UUID | None = Field(default_factory=uuid.uuid4, primary_key=True)
     location_id: uuid.UUID = Field(foreign_key="location.id")
+    room: str | None = None
+    last_reboot_ts: datetime | None = None
+    created_at: datetime = Field(default_factory=datetime.now)
 
     sensors: list["Sensor"] = Relationship(back_populates="device")
     location: "Location" = Relationship(back_populates="devices")
@@ -30,7 +33,7 @@ class Device(DeviceBase, table=True):
 class DeviceCreate(SQLModel):
     name: str
     location_name: str
-    sensors: list["SensorPublic"]
+    sensors: list["SensorCreate"]
 
 
 class DeviceRead(DeviceBase):
@@ -48,6 +51,25 @@ class DevicesPublic(SQLModel):
     count: int
 
 
+class UptimeDetail(SQLModel):
+    days: int
+    hours: int
+    minutes: int
+    seconds: int
+    total_seconds: int
+
+
+class DeviceDetail(SQLModel):
+    id: uuid.UUID
+    device_name: str
+    location_name: str
+    room: str | None
+    status: str
+    last_seen: datetime
+    uptime: UptimeDetail | None
+    sensors: list["SensorPublic"]
+
+
 # ------sensors-------
 class SensorBase(SQLModel):
     sensor_type: str
@@ -62,8 +84,12 @@ class Sensor(SensorBase, table=True):
     telemetry: list["Telemetry"] = Relationship(back_populates="sensor")
 
 
-class SensorPublic(SensorBase):
+class SensorCreate(SensorBase):
     pass
+
+
+class SensorPublic(SensorBase):
+    id: uuid.UUID
 
 
 # ------telemetry-------
@@ -79,6 +105,20 @@ class TelemetryCreate(TelemetryBase):
 
 class TelemetryPublic(TelemetryBase):
     pass
+
+
+class TelemetryRead(SQLModel):
+    sensor_type: str
+    unit: str
+    mean: float
+    minimum: float
+    maximum: float
+    data: list["SensorData"]
+
+
+class SensorData(SQLModel):
+    ts: datetime
+    value: float
 
 
 class Telemetry(TelemetryBase, table=True):

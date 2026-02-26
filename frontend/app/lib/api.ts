@@ -19,6 +19,7 @@ export async function fetchTelemetry(
   range: 'day' | 'week' | 'month' | 'year',
 ) {
   try {
+    //sensors/sensor_id/telemetry
     const data = await fetch(
       `${BASE_URL}/devices/${deviceId}/telemetry?sensor_name=${sensorName}&range=${range}`,
     );

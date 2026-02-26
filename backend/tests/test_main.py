@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+import math
 import random
 import time
 import uuid
@@ -32,11 +33,32 @@ def seed_sensor_telemetry(*, session=Session, n: int = 5):
 
     telemetries = []
     for sensor in sensors:
-        for _ in range(n):
-            ts = datetime.now()
+        for i in range(n):
+            ts = datetime.now() - timedelta.days(i)
             value = random.gauss(mu=20, sigma=5)
             telemetries.append(Telemetry(ts=ts, value=value, sensor_id=sensor.id))
             time.sleep(0.01)
+
+    session.add_all(telemetries)
+    session.commit()
+
+
+def seed_sensor_telemetry_for_time_range(
+    *, session=Session, sampling_interval: int = 60, days: int = 1
+):
+    """sampling_interval in minutes"""
+
+    sensors = session.exec(select(Sensor)).all()
+
+    telemetries = []
+    n = math.ceil(days * 24 * 60 / sampling_interval)
+    now = datetime.now()
+
+    for sensor in sensors:
+        for i in range(n):
+            ts = now - timedelta(minutes=i * sampling_interval)
+            value = random.gauss(mu=20, sigma=5)
+            telemetries.append(Telemetry(ts=ts, value=value, sensor_id=sensor.id))
 
     session.add_all(telemetries)
     session.commit()
@@ -137,6 +159,33 @@ def test_read_overview(session: Session, client: TestClient):
         "temperature",
         "humidity",
     }
+
+
+def test_read_device_detail(session: Session, client: TestClient):
+    sensors = [
+        Sensor(sensor_type="temperature", unit="celcius"),
+        Sensor(sensor_type="humidity"),
+    ]
+
+    device, location = create_location_and_device(
+        session=session, location_name="cabin", device_name="esp32", sensors=sensors
+    )
+
+    # seed some telemetry so last_seen and status can be computed
+    seed_sensor_telemetry(session=session, n=1)
+
+    response = client.get(f"/devices/{device.id}")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["id"] == str(device.id)
+    assert data["device_name"] == "esp32"
+    assert data["location_name"] == "cabin"
+    assert data["status"] == "online"
+    assert "last_seen" in data
+    assert data["uptime"] in data
+    assert len(data["sensors"]) == 2
 
 
 """ def test_create_device_incomplete(client: TestClient):
