@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import math
 import random
 import time
@@ -34,7 +34,7 @@ def seed_sensor_telemetry(*, session=Session, n: int = 5):
     telemetries = []
     for sensor in sensors:
         for i in range(n):
-            ts = datetime.now() - timedelta.days(i)
+            ts = datetime.now(tz=timezone.utc)
             value = random.gauss(mu=20, sigma=5)
             telemetries.append(Telemetry(ts=ts, value=value, sensor_id=sensor.id))
             time.sleep(0.01)
@@ -52,7 +52,7 @@ def seed_sensor_telemetry_for_time_range(
 
     telemetries = []
     n = math.ceil(days * 24 * 60 / sampling_interval)
-    now = datetime.now()
+    now = datetime.now(tz=timezone.utc)
 
     for sensor in sensors:
         for i in range(n):
@@ -120,7 +120,7 @@ def test_create_telemetry(session: Session, client: TestClient):
     device, _ = create_location_and_device(
         session=session, location_name="test", device_name="test", sensors=sensors
     )
-    ts = datetime.now().isoformat()
+    ts = datetime.now(tz=timezone.utc).isoformat()
     sensor_id = str(device.sensors[0].id)
     payload = {"ts": ts, "value": 20.2, "sensor_id": sensor_id}
     response = client.post("/telemetry", json=payload)
@@ -184,7 +184,7 @@ def test_read_device_detail(session: Session, client: TestClient):
     assert data["location_name"] == "cabin"
     assert data["status"] == "online"
     assert "last_seen" in data
-    assert data["uptime"] in data
+    assert "uptime" in data
     assert len(data["sensors"]) == 2
 
 

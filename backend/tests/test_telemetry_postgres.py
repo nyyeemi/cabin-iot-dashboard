@@ -54,11 +54,32 @@ def test_read_device_telemetry(session: Session, client: TestClient):
     )
 
     # seed some telemetry so last_seen and status can be computed
-    seed_sensor_telemetry_for_time_range(session=session, sampling_interval=60, days=1)
+    seed_sensor_telemetry_for_time_range(
+        session=session, sampling_interval=60, days=365
+    )
+
+    response = client.get(f"/sensors/{sensors[0].id}/telemetry?range=year")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert len(data) == 13
+
+    response = client.get(f"/sensors/{sensors[0].id}/telemetry?range=month")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    print(len(data))
+
+    response = client.get(f"/sensors/{sensors[0].id}/telemetry?range=week")
+
+    assert response.status_code == 200
+    data = response.json()
+
+    print(len(data))
 
     response = client.get(f"/sensors/{sensors[0].id}/telemetry?range=day")
 
     assert response.status_code == 200
     data = response.json()
-
-    print(data)

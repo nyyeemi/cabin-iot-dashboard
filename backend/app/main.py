@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Literal
 import uuid
 from fastapi import FastAPI, HTTPException, status as http_status
@@ -11,17 +11,12 @@ from app.models import (
     DeviceCreate,
     DeviceDetail,
     DeviceRead,
-    DevicesPublic,
     Location,
-    Overview,
     OverviewRead,
     Sensor,
     SensorData,
-    SensorReading,
     Telemetry,
     TelemetryCreate,
-    TelemetryPublic,
-    TelemetryRead,
 )
 from app.crud import sensor_get_latest_telemetry
 
@@ -104,11 +99,14 @@ def read_device_by_id(device_id: uuid.UUID, session: SessionDep):
         else "offline"
     )
 
+    # TODO: better logic
     base_ts = device.last_reboot_ts or device.created_at
+
+    now_utc = datetime.now(tz=timezone.utc)
 
     uptime = None
     if device_status == "online":
-        uptime_delta = datetime.now() - base_ts
+        uptime_delta = now_utc - base_ts.astimezone(timezone.utc)
         total_seconds = int(uptime_delta.total_seconds())
 
         uptime = {
@@ -126,6 +124,7 @@ def read_device_by_id(device_id: uuid.UUID, session: SessionDep):
         device_name=device.name,
         location_name=device.location.name,
         room=device.room,
+        created_at=device.created_at,
         status=device_status,
         last_seen=last_seen or base_ts,
         uptime=uptime,
@@ -133,13 +132,18 @@ def read_device_by_id(device_id: uuid.UUID, session: SessionDep):
     )
 
 
-# todo next
 @app.get("/sensors/{sensor_id}/telemetry")
 def read_device_telemetry(
     sensor_id: uuid.UUID,
     session: SessionDep,
     range: Literal["day", "week", "month", "year"],
 ):
+    """Returns last n entries depending on range param.
+    Currently returns literally from this moment, e.g. for day past 24h readings.
+
+    Later functinality would probably clip the date to the selected date, or selected month, e.g.
+    if I get days data at noon i would get only 12 readings, in stead of 24 (current).
+    """
     sensor = session.get(Sensor, sensor_id)
     if not sensor:
         raise HTTPException(
@@ -164,9 +168,11 @@ def read_device_telemetry(
 
     start = now - ranges[range]
 
+    trunc_bin = {"day": "hour", "week": "day", "month": "day", "year": "month"}
+
     stmt = (
         select(
-            func.date_trunc("hour", Telemetry.ts).label("ts_bin"),
+            func.date_trunc(trunc_bin[range], Telemetry.ts).label("ts_bin"),
             func.avg(Telemetry.value).label("mean"),
             func.min(Telemetry.value).label("min"),
             func.max(Telemetry.value).label("max"),
@@ -181,7 +187,7 @@ def read_device_telemetry(
     )
 
     rows = session.exec(stmt).all()
-    print(f"Rows: {rows}\n\nLen: {len(rows)}\n\n")
+    print(f"Row shape: {rows}\n\nLen: {len(rows)}\n\n")
 
     data = [SensorData(ts=r.ts_bin, value=r.mean) for r in rows]
 

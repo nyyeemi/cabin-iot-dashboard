@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import DateTime, Field, Relationship, SQLModel, func
 
 
 # ------locations-------
@@ -24,7 +24,7 @@ class Device(DeviceBase, table=True):
     location_id: uuid.UUID = Field(foreign_key="location.id")
     room: str | None = None
     last_reboot_ts: datetime | None = None
-    created_at: datetime = Field(default_factory=datetime.now)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
     sensors: list["Sensor"] = Relationship(back_populates="device")
     location: "Location" = Relationship(back_populates="devices")
@@ -66,6 +66,7 @@ class DeviceDetail(SQLModel):
     room: str | None
     status: str
     last_seen: datetime
+    created_at: datetime
     uptime: UptimeDetail | None
     sensors: list["SensorPublic"]
 
