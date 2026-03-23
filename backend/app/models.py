@@ -1,6 +1,8 @@
-from datetime import datetime, timezone
+from datetime import datetime
 import uuid
-from sqlmodel import DateTime, Field, Relationship, SQLModel, func
+from sqlmodel import DateTime, Field, Relationship, SQLModel
+
+from app.utils import utc_now
 
 
 # ------locations-------
@@ -23,8 +25,12 @@ class Device(DeviceBase, table=True):
     id: uuid.UUID | None = Field(default_factory=uuid.uuid4, primary_key=True)
     location_id: uuid.UUID = Field(foreign_key="location.id")
     room: str | None = None
-    last_reboot_ts: datetime | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    last_reboot_ts: datetime | None = Field(
+        default=None, sa_type=DateTime(timezone=True)
+    )
+    created_at: datetime = Field(
+        default_factory=utc_now, sa_type=DateTime(timezone=True)
+    )
 
     sensors: list["Sensor"] = Relationship(back_populates="device")
     location: "Location" = Relationship(back_populates="devices")
@@ -65,7 +71,7 @@ class DeviceDetail(SQLModel):
     location_name: str
     room: str | None
     status: str
-    last_seen: datetime
+    last_seen: datetime | None
     created_at: datetime
     uptime: UptimeDetail | None
     sensors: list["SensorPublic"]
@@ -95,7 +101,7 @@ class SensorPublic(SensorBase):
 
 # ------telemetry-------
 class TelemetryBase(SQLModel):
-    ts: datetime
+    ts: datetime = Field(sa_type=DateTime(timezone=True))
     value: float
     sensor_id: uuid.UUID = Field(index=True, foreign_key="sensor.id")
 
@@ -138,6 +144,7 @@ class SensorReading(SQLModel):
 class DeviceOverview(SQLModel):
     device_id: uuid.UUID
     device_name: str
+    status: str
     latest_readings: list[SensorReading]
 
 

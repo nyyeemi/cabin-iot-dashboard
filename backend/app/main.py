@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from typing import Literal
 import uuid
 from fastapi import FastAPI, HTTPException, status as http_status
@@ -18,7 +18,8 @@ from app.models import (
     Telemetry,
     TelemetryCreate,
 )
-from app.crud import sensor_get_latest_telemetry
+from app.crud import device_get_latest_reading_timestamp, sensor_get_latest_telemetry
+from app.utils import get_device_status, utc_now
 
 
 # todo: move to alembic, only for quick local dev
@@ -51,7 +52,16 @@ def read_overview(session: SessionDep):
         devices = location.devices
 
         for device in devices:
-            device_overview = {"device_id": device.id, "device_name": device.name}
+            last_seen = device_get_latest_reading_timestamp(
+                session=session, device=device
+            )
+            device_overview = {
+                "device_id": device.id,
+                "device_name": device.name,
+                "status": get_device_status(
+                    last_seen=last_seen, created_at=device.created_at
+                ),
+            }
             sensors = device.sensors
             latest_readings = []
             for sensor in sensors:
@@ -87,26 +97,18 @@ def read_device_by_id(device_id: uuid.UUID, session: SessionDep):
             status_code=http_status.HTTP_404_NOT_FOUND, detail="Device not found"
         )
 
-    stmt = (
-        select(func.max(Telemetry.ts))
-        .join(Sensor, Telemetry.sensor_id == Sensor.id)
-        .where(Sensor.device_id == device.id)
-    )
-    last_seen = session.exec(stmt).one()
-    device_status = (
-        "online"
-        if last_seen and last_seen > datetime.now() - timedelta(minutes=120)
-        else "offline"
-    )
+    last_seen = device_get_latest_reading_timestamp(session=session, device=device)
+
+    device_status = get_device_status(last_seen=last_seen, created_at=device.created_at)
 
     # TODO: better logic
     base_ts = device.last_reboot_ts or device.created_at
 
-    now_utc = datetime.now(tz=timezone.utc)
+    now_utc = utc_now()
 
     uptime = None
     if device_status == "online":
-        uptime_delta = now_utc - base_ts.astimezone(timezone.utc)
+        uptime_delta = now_utc - base_ts
         total_seconds = int(uptime_delta.total_seconds())
 
         uptime = {
@@ -126,7 +128,7 @@ def read_device_by_id(device_id: uuid.UUID, session: SessionDep):
         room=device.room,
         created_at=device.created_at,
         status=device_status,
-        last_seen=last_seen or base_ts,
+        last_seen=last_seen,
         uptime=uptime,
         sensors=sensors,
     )
@@ -157,7 +159,7 @@ def read_device_telemetry(
     # month: daily averages
     # year: monthly averages
 
-    now = datetime.now()
+    now = utc_now()
 
     ranges = {
         "day": timedelta(days=1),

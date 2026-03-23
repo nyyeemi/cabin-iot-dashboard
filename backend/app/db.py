@@ -12,7 +12,7 @@ POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
 
 postgres_url = f"postgresql+psycopg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
 
-engine = create_engine(postgres_url)
+engine = create_engine(postgres_url, connect_args={"options": "-c timezone=UTC"})
 
 
 def get_session():

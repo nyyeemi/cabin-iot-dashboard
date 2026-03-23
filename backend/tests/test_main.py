@@ -1,89 +1,9 @@
-from datetime import datetime, timedelta, timezone
-import math
-import random
-import time
+from datetime import datetime, timezone
 import uuid
 from fastapi.testclient import TestClient
-from fastapi import status
-import pytest
-from sqlmodel import SQLModel, Session, create_engine, select
-from sqlmodel.pool import StaticPool
-from app.main import app
-from app.db import get_session
-from app.models import Device, Location, Sensor, Telemetry
-
-
-# crud
-def create_location_and_device(
-    *, session: Session, location_name: str, device_name: str, sensors: list[Sensor]
-):
-    location = Location(name=location_name)
-    session.add(location)
-    session.commit()
-
-    device = Device(name=device_name, location_id=location.id, sensors=sensors)
-    session.add(device)
-    session.commit()
-
-    return device, location
-
-
-def seed_sensor_telemetry(*, session=Session, n: int = 5):
-    sensors = session.exec(select(Sensor)).all()
-
-    telemetries = []
-    for sensor in sensors:
-        for i in range(n):
-            ts = datetime.now(tz=timezone.utc)
-            value = random.gauss(mu=20, sigma=5)
-            telemetries.append(Telemetry(ts=ts, value=value, sensor_id=sensor.id))
-            time.sleep(0.01)
-
-    session.add_all(telemetries)
-    session.commit()
-
-
-def seed_sensor_telemetry_for_time_range(
-    *, session=Session, sampling_interval: int = 60, days: int = 1
-):
-    """sampling_interval in minutes"""
-
-    sensors = session.exec(select(Sensor)).all()
-
-    telemetries = []
-    n = math.ceil(days * 24 * 60 / sampling_interval)
-    now = datetime.now(tz=timezone.utc)
-
-    for sensor in sensors:
-        for i in range(n):
-            ts = now - timedelta(minutes=i * sampling_interval)
-            value = random.gauss(mu=20, sigma=5)
-            telemetries.append(Telemetry(ts=ts, value=value, sensor_id=sensor.id))
-
-    session.add_all(telemetries)
-    session.commit()
-
-
-@pytest.fixture(name="session")
-def session_fixture():
-    engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-    )
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        yield session
-
-
-@pytest.fixture(name="client")
-def client_fixture(session: Session):
-    def get_session_override():
-        return session
-
-    app.dependency_overrides[get_session] = get_session_override
-
-    client = TestClient(app)
-    yield client
-    app.dependency_overrides.clear()
+from sqlmodel import Session
+from app.models import Device, Sensor
+from tests.factories import create_location_and_device, seed_sensor_telemetry
 
 
 def test_create_device(session: Session, client: TestClient):
@@ -130,19 +50,19 @@ def test_create_telemetry(session: Session, client: TestClient):
     assert data["sensor_id"] == sensor_id
 
 
-def test_read_overview(session: Session, client: TestClient):
+def test_read_overview(pg_session: Session, pg_client: TestClient):
     sensors = [
         Sensor(sensor_type="temperature", unit="celcius"),
         Sensor(sensor_type="humidity"),
     ]
 
     device, _ = create_location_and_device(
-        session=session, location_name="test", device_name="test", sensors=sensors
+        session=pg_session, location_name="test", device_name="test", sensors=sensors
     )
 
-    seed_sensor_telemetry(session=session, n=5)
+    seed_sensor_telemetry(session=pg_session, n=5)
 
-    response = client.get("/overview")
+    response = pg_client.get("/overview")
 
     assert response.status_code == 200
     data = response.json()
@@ -159,22 +79,23 @@ def test_read_overview(session: Session, client: TestClient):
         "temperature",
         "humidity",
     }
+    assert device["status"] == "online"
 
 
-def test_read_device_detail(session: Session, client: TestClient):
+def test_read_device_detail(pg_session: Session, pg_client: TestClient):
     sensors = [
         Sensor(sensor_type="temperature", unit="celcius"),
         Sensor(sensor_type="humidity"),
     ]
 
     device, location = create_location_and_device(
-        session=session, location_name="cabin", device_name="esp32", sensors=sensors
+        session=pg_session, location_name="cabin", device_name="esp32", sensors=sensors
     )
 
     # seed some telemetry so last_seen and status can be computed
-    seed_sensor_telemetry(session=session, n=1)
+    seed_sensor_telemetry(session=pg_session, n=1)
 
-    response = client.get(f"/devices/{device.id}")
+    response = pg_client.get(f"/devices/{device.id}")
 
     assert response.status_code == 200
     data = response.json()
