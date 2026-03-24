@@ -1,12 +1,13 @@
 import { DeviceDetail, OverviewRead, TelemetryRead } from './types';
 
-const BASE_URL = process.env.PUBLIC_API_BASE;
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function fetchOverview() {
   try {
+    //await new Promise((resolve) => setTimeout(resolve, 6000)));
     const data = await fetch(`${BASE_URL}/overview`);
     const overview: OverviewRead = await data.json();
-    return overview.data;
+    return overview;
   } catch (error) {
     console.error('Error fetching data', error);
     throw new Error('Failed to fetch overview data');

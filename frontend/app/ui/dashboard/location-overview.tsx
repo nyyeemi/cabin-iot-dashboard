@@ -1,26 +1,47 @@
 import { DeviceOverview, Overview, SensorReading } from '@/app/lib/types';
 import clsx from 'clsx';
-import { Thermometer, Droplets, ChevronRight } from 'lucide-react';
+import { Thermometer, Droplets, Plus } from 'lucide-react';
 import Link from 'next/link';
 
 export default function LocationOverview({ location }: { location: Overview }) {
   const devices = location.devices;
+  const hasDevices = devices.length > 0;
   return (
     <>
-      <Link
-        className="my-2 flex flex-row items-center gap-1 transition-opacity duration-200 active:opacity-70"
-        href={`/dashboard/locations/${location.location_id}`}
-      >
-        <span className="my-2 text-xl font-semibold">{location.location_name}</span>
-        <ChevronRight className="text-zinc-500" />
-      </Link>
-
-      <div className="flex flex-col gap-4">
-        {devices.map((d) => (
-          <DeviceCard key={d.device_id} device={d} />
-        ))}
+      <div className="my-2 flex flex-row items-baseline justify-between">
+        <span className="text-xl font-bold">{location.location_name}</span>
+        <span className="font-label text-xs font-bold tracking-widest text-zinc-200 uppercase">
+          {devices.length} devices
+        </span>
       </div>
+      {hasDevices ? (
+        <div className="flex flex-col gap-4">
+          {devices.map((d) => (
+            <DeviceCard key={d.device_id} device={d} />
+          ))}
+        </div>
+      ) : (
+        <EmptyState />
+      )}
     </>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col justify-center rounded-4xl border border-white/5 bg-zinc-900/50 p-6 text-start shadow-2xl backdrop-blur-2xl transition-all">
+      <p className="font-bold tracking-tight text-zinc-100">Location has no devices.</p>
+      <p className="mt-2 text-sm text-zinc-300">
+        This location is registered but has no devices. Start monitoring by creating a device.
+      </p>
+      <Link
+        href="/dashboard/devices/new"
+        className="bg-primary-container/20 border-primary/20 hover:bg-primary-container/70 text-primary mt-6 flex max-w-sm items-center gap-2 self-center rounded-full border px-5 py-2 text-sm font-medium transition-colors"
+      >
+        <Plus className="h-4 w-4" />
+        Add New Device
+      </Link>
+    </div>
   );
 }
 

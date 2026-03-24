@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 import uuid
 from sqlmodel import DateTime, Field, Relationship, SQLModel
 
@@ -144,7 +145,7 @@ class SensorReading(SQLModel):
 class DeviceOverview(SQLModel):
     device_id: uuid.UUID
     device_name: str
-    status: str
+    status: Literal["online", "offline", "initialized"]
     latest_readings: list[SensorReading]
 
 

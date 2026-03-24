@@ -18,7 +18,7 @@ export type SensorReading = {
 export type DeviceOverview = {
   device_id: string;
   device_name: string;
-  status: 'online' | 'offline';
+  status: 'online' | 'offline' | 'initialized';
   latest_readings: SensorReading[];
 };
 
