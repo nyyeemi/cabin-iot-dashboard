@@ -18,6 +18,7 @@ export default async function Overview({ selectedLocationId }: Props) {
       : locations.filter((loc) => loc.location_id === selectedLocationId);
 
   const hasLocations = locations.length > 0;
+
   return (
     <>
       {hasLocations ? (

@@ -29,19 +29,13 @@ export default function LocationOverview({ location }: { location: Overview }) {
 
 function EmptyState() {
   return (
-    <div className="flex flex-col justify-center rounded-4xl border border-white/5 bg-zinc-900/50 p-6 text-start shadow-2xl backdrop-blur-2xl transition-all">
-      <p className="font-bold tracking-tight text-zinc-100">Location has no devices.</p>
-      <p className="mt-2 text-sm text-zinc-300">
-        This location is registered but has no devices. Start monitoring by creating a device.
-      </p>
-      <Link
-        href="/dashboard/devices/new"
-        className="bg-primary-container/20 border-primary/20 hover:bg-primary-container/70 text-primary mt-6 flex max-w-sm items-center gap-2 self-center rounded-full border px-5 py-2 text-sm font-medium transition-colors"
-      >
-        <Plus className="h-4 w-4" />
-        Add New Device
-      </Link>
-    </div>
+    <Link
+      href="/dashboard/devices/new"
+      className="hover:border-primary/60 hover:text-primary active:text-primary active:border-primary flex items-center gap-2 rounded-2xl border border-dashed border-zinc-400/60 bg-zinc-900/10 px-4 py-3 text-sm text-zinc-300 transition-colors"
+    >
+      <Plus className="h-4 w-4" />
+      Add first device
+    </Link>
   );
 }
 
