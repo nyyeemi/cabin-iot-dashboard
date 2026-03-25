@@ -1,8 +1,9 @@
-import { SensorReading } from '@/app/lib/types';
+import { fetchDeviceOverview, fetchTelemetry } from '@/app/lib/api';
+import { DeviceDetail } from '@/app/lib/types';
 import BackButton from '@/app/ui/dashboard/backbutton';
 import { DateRangeSelector, SensorSelector } from '@/app/ui/dashboard/devices/selectors';
 import TimeSeriesChart from '@/app/ui/dashboard/timeseries-chart';
-import { Info, ThermometerSun } from 'lucide-react';
+import { ThermometerSun } from 'lucide-react';
 
 const mockData = {
   id: 'mock-id-001',
@@ -73,7 +74,7 @@ function generateTemperatureTelemetry(hours: number) {
 }
 
 type SensorOverview = {
-  id: number;
+  id: string;
   sensor_type: string;
   unit: string;
 };
@@ -103,19 +104,23 @@ type Telemetry = {
 
 export default async function Page(props: {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ range?: string; sensor?: string }>;
+  searchParams?: Promise<{ range?: 'day' | 'month' | 'week' | 'year'; sensor?: string }>;
 }) {
   const params = await props.params;
   const id = params.id;
 
-  // const deviceData = await fetchDeviceOverview(id);
-  const deviceData = mockData;
-  const telemetry = deviceData.sensors[0].telemetry;
+  const deviceData = await fetchDeviceOverview(id);
+  console.log(deviceData);
+  //const deviceData = mockData;
+  //const telemetry = mockData.sensors[0].telemetry;
   const sensors = deviceData.sensors;
 
   const searchParams = await props.searchParams;
   const selectedRange = searchParams?.range ?? 'day';
   const selectedSensor = searchParams?.sensor ?? sensors[0].sensor_type;
+
+  const selectedSensorObj = sensors.find((s) => s.sensor_type === selectedSensor);
+  const telemetry = await fetchTelemetry(selectedSensorObj?.id ?? 'skip', selectedRange);
 
   /*const telemetryData = await fetchTelemetry(
       id,
@@ -124,8 +129,8 @@ export default async function Page(props: {
     );*/
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="relative flex min-h-screen w-full max-w-3xl flex-col bg-white dark:bg-black">
+    <div className="bg-background flex min-h-screen items-center justify-center font-sans">
+      <main className="relative flex min-h-screen w-full max-w-3xl flex-col">
         {/*<h1 className="mt-2 text-3xl font-bold">{deviceData.location_name}</h1>
         <h2 className="mb-4 font-semibold text-zinc-500">{deviceData.room}</h2>*/}
         <header className="sticky top-0 z-10 my-2 flex items-center justify-center bg-linear-to-t to-black px-4 py-4">
@@ -149,8 +154,9 @@ export default async function Page(props: {
             id={id}
           />
 
-          <TimeSeriesChart data={telemetry} />
+          <TimeSeriesChart data={telemetry} range={selectedRange} />
 
+          {/*
           <div className="mt-8 flex flex-row justify-between rounded-3xl px-8 py-2 ring-1 ring-zinc-900">
             <Summary
               header={'AVERAGE'}
@@ -170,11 +176,10 @@ export default async function Page(props: {
               unit={mockData.sensors[0].unit}
               footer={'+0.9'}
             />
-            {/** ADD CURRENT VALUE, DEVICE STATUS, BATTERY ETC */}
-          </div>
+            </div>
+            */}
         </div>
         <DeviceDetails deviceData={deviceData} />
-        {/**Mock has bit wrong structure^^ */}
       </main>
     </div>
   );
@@ -207,7 +212,7 @@ function Summary(props: Props) {
   );
 }
 
-function DeviceDetails({ deviceData }: { deviceData: DeviceOverview }) {
+function DeviceDetails({ deviceData }: { deviceData: DeviceDetail }) {
   return (
     <div className="mt-8 flex flex-col gap-4 rounded-t-3xl bg-zinc-900 p-4">
       {/**Card title */}
@@ -239,7 +244,7 @@ function DeviceDetails({ deviceData }: { deviceData: DeviceOverview }) {
 
         <div className="flex w-full flex-row justify-between py-2">
           <p>Sensors</p>
-          <p className="text-zinc-400">{deviceData.sensors.map((s) => s.sensor_type + ', ')}</p>
+          <p className="text-zinc-400">{deviceData.sensors.map((s) => s.sensor_type).join(', ')}</p>
         </div>
 
         <div className="flex w-full flex-row justify-between py-2">
@@ -262,7 +267,11 @@ function DeviceDetails({ deviceData }: { deviceData: DeviceOverview }) {
 
         <div className="flex w-full flex-row justify-between py-2">
           <p>Uptime</p>
-          <p className="text-zinc-400">{deviceData.uptime} hours</p>
+          <p className="text-zinc-400">
+            {deviceData.uptime
+              ? `${deviceData.uptime.days}d ${deviceData.uptime.hours}h ${deviceData.uptime.minutes}m`
+              : '—'}
+          </p>
         </div>
       </div>
     </div>

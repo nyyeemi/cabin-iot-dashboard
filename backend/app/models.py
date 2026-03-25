@@ -115,18 +115,22 @@ class TelemetryPublic(TelemetryBase):
     pass
 
 
-class TelemetryRead(SQLModel):
+"""class TelemetryRead(SQLModel):
     sensor_type: str
     unit: str
     mean: float
     minimum: float
     maximum: float
-    data: list["SensorData"]
+    data: list["SensorData"]"""
 
 
 class SensorData(SQLModel):
     ts: datetime
     value: float
+
+
+class TelemetryRead(SQLModel):
+    data: list[SensorData]
 
 
 class Telemetry(TelemetryBase, table=True):

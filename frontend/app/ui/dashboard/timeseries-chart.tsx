@@ -15,13 +15,47 @@ type Point = {
   value: number;
 };
 
-export default function TimeSeriesChart({ data }: { data: Point[] }) {
+type DateFormatOptions = {
+  [K in 'day' | 'week' | 'month' | 'year']: Intl.DateTimeFormatOptions;
+};
+
+const dateRangeMap: Record<string, Intl.DateTimeFormatOptions> = {
+  day: {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  },
+  week: {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'numeric',
+  },
+
+  month: {
+    day: 'numeric',
+    month: 'numeric',
+  },
+
+  year: {
+    month: 'short',
+  },
+};
+
+export default function TimeSeriesChart({
+  data,
+  range,
+}: {
+  data: Point[];
+  range: 'day' | 'month' | 'week' | 'year';
+}) {
+  const formatter = new Intl.DateTimeFormat('fi-FI', {
+    ...dateRangeMap[range],
+    timeZone: 'Europe/Helsinki',
+  });
+
   const formatted = data.map((d) => ({
     ...d,
-    time: new Date(d.ts).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
+    time: formatter.format(new Date(d.ts)),
   }));
 
   return (
@@ -30,12 +64,12 @@ export default function TimeSeriesChart({ data }: { data: Point[] }) {
         <AreaChart data={formatted}>
           <defs>
             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#FA5C5C" stopOpacity={0.35} />
-              <stop offset="95%" stopColor="#FA5C5C" stopOpacity={0} />
+              <stop offset="5%" stopColor="#73db9a" stopOpacity={0.5} />
+              <stop offset="95%" stopColor="#73db9a" stopOpacity={0} />
             </linearGradient>
           </defs>
 
-          <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
+          <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} horizontal={false} />
 
           <XAxis
             dataKey="time"
@@ -50,6 +84,7 @@ export default function TimeSeriesChart({ data }: { data: Point[] }) {
             axisLine={false}
             tickLine={false}
             width={'auto'}
+            domain={['auto', 'auto']}
           />
 
           <Tooltip
@@ -64,8 +99,8 @@ export default function TimeSeriesChart({ data }: { data: Point[] }) {
           <Area
             type="monotone"
             dataKey="value"
-            stroke="#ffffff"
-            strokeWidth={2}
+            stroke="#73db9a"
+            strokeWidth={2.5}
             fill="url(#colorValue)"
             dot={false}
             activeDot={{ r: 6 }}

@@ -14,16 +14,9 @@ export async function fetchOverview() {
   }
 }
 
-export async function fetchTelemetry(
-  deviceId: string,
-  sensorName: string,
-  range: 'day' | 'week' | 'month' | 'year',
-) {
+export async function fetchTelemetry(sensor_id: string, range: 'day' | 'week' | 'month' | 'year') {
   try {
-    //sensors/sensor_id/telemetry
-    const data = await fetch(
-      `${BASE_URL}/devices/${deviceId}/telemetry?sensor_name=${sensorName}&range=${range}`,
-    );
+    const data = await fetch(`${BASE_URL}/sensors/${sensor_id}/telemetry?range=${range}`);
     const telemetry: TelemetryRead = await data.json();
     return telemetry.data;
   } catch (error) {
@@ -34,7 +27,7 @@ export async function fetchTelemetry(
 
 export async function fetchDeviceOverview(id: string) {
   try {
-    const data = await fetch(`${BASE_URL}/devices/${id}/`);
+    const data = await fetch(`${BASE_URL}/devices/${id}`);
     const deviceDetail: DeviceDetail = await data.json();
     return deviceDetail;
   } catch (error) {

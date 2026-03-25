@@ -17,6 +17,7 @@ from app.models import (
     SensorData,
     Telemetry,
     TelemetryCreate,
+    TelemetryRead,
 )
 from app.crud import device_get_latest_reading_timestamp, sensor_get_latest_telemetry
 from app.utils import get_device_status, utc_now
@@ -134,7 +135,7 @@ def read_device_by_id(device_id: uuid.UUID, session: SessionDep):
     )
 
 
-@app.get("/sensors/{sensor_id}/telemetry")
+@app.get("/sensors/{sensor_id}/telemetry", response_model=TelemetryRead)
 def read_device_telemetry(
     sensor_id: uuid.UUID,
     session: SessionDep,
@@ -189,11 +190,9 @@ def read_device_telemetry(
     )
 
     rows = session.exec(stmt).all()
-    print(f"Row shape: {rows}\n\nLen: {len(rows)}\n\n")
-
     data = [SensorData(ts=r.ts_bin, value=r.mean) for r in rows]
 
-    return data
+    return TelemetryRead(data=data)
 
 
 @app.post("/devices", response_model=DeviceRead)

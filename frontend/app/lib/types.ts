@@ -33,18 +33,11 @@ export type OverviewRead = {
 };
 
 export type TelemetryRead = {
-  sensor_type: string;
-  unit: string;
-  mean: number;
-  range: {
-    min: number;
-    max: number;
-  };
-  data: [{ ts: string; value: number }];
+  data: { ts: string; value: number }[];
 };
 
 type SensorOverview = {
-  id: number;
+  id: string;
   sensor_type: string;
   unit: string;
 };
@@ -57,6 +50,12 @@ export type DeviceDetail = {
   status: string;
   last_seen: string;
   created_at: string;
-  uptime: number;
+  uptime: {
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    total_seconds: number;
+  } | null;
   sensors: SensorOverview[];
 };
