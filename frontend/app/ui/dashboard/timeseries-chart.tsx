@@ -15,10 +15,6 @@ type Point = {
   value: number;
 };
 
-type DateFormatOptions = {
-  [K in 'day' | 'week' | 'month' | 'year']: Intl.DateTimeFormatOptions;
-};
-
 const dateRangeMap: Record<string, Intl.DateTimeFormatOptions> = {
   day: {
     hour: '2-digit',
@@ -27,8 +23,6 @@ const dateRangeMap: Record<string, Intl.DateTimeFormatOptions> = {
   },
   week: {
     weekday: 'short',
-    day: 'numeric',
-    month: 'numeric',
   },
 
   month: {
@@ -58,55 +52,58 @@ export default function TimeSeriesChart({
     time: formatter.format(new Date(d.ts)),
   }));
 
+  console.log(formatted);
+
   return (
-    <div className="h-64 w-full">
-      <ResponsiveContainer>
-        <AreaChart data={formatted}>
-          <defs>
-            <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#73db9a" stopOpacity={0.5} />
-              <stop offset="95%" stopColor="#73db9a" stopOpacity={0} />
-            </linearGradient>
-          </defs>
+    <AreaChart
+      style={{ width: '100%', aspectRatio: 1.618 }}
+      responsive
+      data={formatted}
+      margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
+    >
+      <defs>
+        <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="5%" stopColor="#73db9a" stopOpacity={0.5} />
+          <stop offset="95%" stopColor="#73db9a" stopOpacity={0} />
+        </linearGradient>
+      </defs>
 
-          <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} horizontal={false} />
+      <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} horizontal={false} />
 
-          <XAxis
-            dataKey="time"
-            tick={{ fill: '#888', fontSize: 12 }}
-            axisLine={false}
-            tickLine={false}
-          />
+      <XAxis
+        dataKey="time"
+        tick={{ fill: '#888', fontSize: 12 }}
+        axisLine={false}
+        tickLine={false}
+      />
 
-          <YAxis
-            orientation="right"
-            tick={{ fill: '#888', fontSize: 12 }}
-            axisLine={false}
-            tickLine={false}
-            width={'auto'}
-            domain={['auto', 'auto']}
-          />
+      <YAxis
+        orientation="right"
+        tick={{ fill: '#888', fontSize: 12 }}
+        axisLine={false}
+        tickLine={false}
+        width={'auto'}
+        domain={['auto', 'auto']}
+      />
 
-          <Tooltip
-            contentStyle={{
-              background: '#111',
-              border: '1px solid #222',
-              borderRadius: '12px',
-            }}
-            labelStyle={{ color: '#aaa' }}
-          />
+      <Tooltip
+        contentStyle={{
+          background: '#111',
+          border: '1px solid #222',
+          borderRadius: '12px',
+        }}
+        labelStyle={{ color: '#aaa' }}
+      />
 
-          <Area
-            type="monotone"
-            dataKey="value"
-            stroke="#73db9a"
-            strokeWidth={2.5}
-            fill="url(#colorValue)"
-            dot={false}
-            activeDot={{ r: 6 }}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
-    </div>
+      <Area
+        type="monotone"
+        dataKey="value"
+        stroke="#73db9a"
+        strokeWidth={2.5}
+        fill="url(#colorValue)"
+        dot={false}
+        activeDot={{ r: 6, strokeWidth: 5, strokeOpacity: 0.1 }}
+      />
+    </AreaChart>
   );
 }

@@ -1,6 +1,6 @@
 import Overview from '@/app/ui/dashboard/overview';
 import { Suspense } from 'react';
-import { OverviewSkeleton } from '../ui/skeletons';
+import { OverviewSkeleton } from '../../ui/skeletons';
 
 export default async function Page(props: { searchParams?: Promise<{ location?: string }> }) {
   const searchParams = await props.searchParams;

@@ -161,7 +161,8 @@ def read_device_telemetry(
     # year: monthly averages
 
     now = utc_now()
-
+    # toDO: Fix daterange logic for now, returns 8 bins for week and expected 7
+    # for example if today is wednesday now returns wed-wed, should return thu-wed
     ranges = {
         "day": timedelta(days=1),
         "week": timedelta(weeks=1),
