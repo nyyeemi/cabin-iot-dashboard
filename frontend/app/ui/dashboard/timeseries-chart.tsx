@@ -52,8 +52,6 @@ export default function TimeSeriesChart({
     time: formatter.format(new Date(d.ts)),
   }));
 
-  console.log(formatted);
-
   return (
     <AreaChart
       style={{ width: '100%', aspectRatio: 1.618 }}

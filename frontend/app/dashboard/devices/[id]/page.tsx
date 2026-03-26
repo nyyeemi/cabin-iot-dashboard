@@ -88,6 +88,13 @@ function Summary(props: Props) {
   );
 }
 
+function formatDate(ts: string) {
+  return new Date(ts).toLocaleDateString('fi-FI', {
+    minute: '2-digit',
+    hour: '2-digit',
+  });
+}
+
 function DeviceDetails({ deviceData }: { deviceData: DeviceDetail }) {
   return (
     <div className="mt-8 mb-20 flex flex-col gap-4 rounded-4xl border-t border-white/5 bg-zinc-900/60 p-4 shadow-2xl shadow-black/40">
@@ -121,12 +128,12 @@ function DeviceDetails({ deviceData }: { deviceData: DeviceDetail }) {
 
         <div className="flex w-full flex-row justify-between py-2">
           <p>Last Seen</p>
-          <p className="text-zinc-400">{deviceData.last_seen}</p>
+          <p className="text-zinc-400">{formatDate(deviceData.last_seen)}</p>
         </div>
 
         <div className="flex w-full flex-row justify-between py-2">
           <p>Register date</p>
-          <p className="text-zinc-400">{deviceData.created_at}</p>
+          <p className="text-zinc-400">{formatDate(deviceData.created_at)}</p>
         </div>
       </div>
 
@@ -134,7 +141,7 @@ function DeviceDetails({ deviceData }: { deviceData: DeviceDetail }) {
       <div className="flex flex-col divide-y divide-zinc-800 py-2">
         <div className="flex w-full flex-row justify-between py-2">
           <p>Device ID</p>
-          <p className="text-zinc-400">{deviceData.id}</p>
+          <p className="text-right text-zinc-400">{deviceData.id}</p>
         </div>
 
         <div className="flex w-full flex-row justify-between py-2">
