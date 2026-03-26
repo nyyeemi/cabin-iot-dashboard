@@ -26,6 +26,9 @@ def test_read_device_telemetry(pg_session: Session, pg_client: TestClient):
 
     assert response.status_code == 200
     data = response.json()
+    assert data["data"] is not None
+
+    data = data["data"]
 
     assert len(data) == 13
 
