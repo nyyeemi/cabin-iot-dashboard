@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from datetime import timedelta
 from typing import Literal
 import uuid
-from fastapi import FastAPI, HTTPException, status as http_status
+from fastapi import Depends, FastAPI, HTTPException, status as http_status
 from sqlmodel import func, select
 
 from app.db import SessionDep, create_db_and_tables
@@ -21,6 +21,7 @@ from app.models import (
 )
 from app.crud import device_get_latest_reading_timestamp, sensor_get_latest_telemetry
 from app.utils import get_device_status, utc_now
+from app.auth import verify_api_key
 
 
 # todo: move to alembic, only for quick local dev
@@ -30,7 +31,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, dependencies=[Depends(verify_api_key)])
 
 
 @app.get("/overview", response_model=OverviewRead)
