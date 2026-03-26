@@ -5,14 +5,17 @@ from fastapi import Depends
 from app import models  # noqa: F401
 from sqlmodel import SQLModel, Session, create_engine
 
-POSTGRES_USER = os.environ.get("POSTGRES_USER", "postgres")
-POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "example")
-POSTGRES_DB = os.environ.get("POSTGRES_DB", "cabin-iot")
-POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
 
-postgres_url = f"postgresql+psycopg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-engine = create_engine(postgres_url, connect_args={"options": "-c timezone=UTC"})
+if not DATABASE_URL:
+    POSTGRES_USER = os.environ.get("POSTGRES_USER", "postgres")
+    POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "example")
+    POSTGRES_DB = os.environ.get("POSTGRES_DB", "cabin-iot")
+    POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
+    DATABASE_URL = f"postgresql+psycopg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
+
+engine = create_engine(DATABASE_URL, connect_args={"options": "-c timezone=UTC"})
 
 
 def get_session():
