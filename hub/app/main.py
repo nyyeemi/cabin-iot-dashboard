@@ -49,8 +49,8 @@ def is_connected():
     try:
         res = httpx.get(f"{API_URL}/utils/health", timeout=3.0)
         return res.status_code == 200
-    except Exception:
-        logger.warning("Railway unreachable, going offline")
+    except Exception as e:
+        logger.warning("Upstream unreachable, going offline", e)
         return False
 
 
@@ -58,13 +58,13 @@ def forward(telemetry: Telemetry) -> bool:
     try:
         r = httpx.post(
             f"{API_URL}/telemetry",
-            json=telemetry.model_dump_json(),
+            json=telemetry.model_dump(mode="json"),
             headers={"X-API-Key": API_KEY},
         )
         r.raise_for_status()
         return True
-    except httpx.HTTPError:
-        logger.error("Forward failed for sensor_id=%s", telemetry.sensor_id)
+    except httpx.HTTPError as e:
+        logger.error("Forward failed for sensor_id=%s\n %s", telemetry.sensor_id, e)
         return False
 
 
@@ -100,5 +100,5 @@ async def ingest(telemetry: Telemetry):
         return {"msg": "buffered"}
 
     flush_buffer()
-    forward(telemetry)
-    return {"msg": "ok"}
+    success = forward(telemetry)
+    return success

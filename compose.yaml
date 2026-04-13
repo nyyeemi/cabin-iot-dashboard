@@ -14,23 +14,26 @@ services:
     depends_on:
       db:
         condition: service_healthy
-  iot-device:
-    build: ./devices
-    environment:
-      - INGEST_URL=http://backend:8000/ingest
-      - REGISTER_URL=http://backend:8000/devices
-    command: ["python", "temperature.py", "--device-id", "device_1"]
-    depends_on:
-      - backend
+
+  hub:
+    build: ./hub
+    env_file:
+      - ./hub/.env
+    ports:
+      - "8001:8001"
     develop:
       watch:
-        - action: sync+restart
-          path: ./devices/
-          target: ./code/
+        - action: sync
+          path: ./hub/app
+          target: /code/app
+    command: ["fastapi", "run", "app/main.py", "--reload", "--port", "8001"]
+    
   db:
     image: postgres:18
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      start_period: 40s
+      start_interval: 5s
     restart: always
     volumes:
       - db-data:/var/lib/postgresql/data/pgdata
