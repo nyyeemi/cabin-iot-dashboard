@@ -1,5 +1,8 @@
-import os
+from dotenv import load_dotenv
 
+load_dotenv()
+
+import os
 from fastapi.testclient import TestClient
 import pytest
 from sqlmodel import SQLModel, Session, StaticPool, create_engine

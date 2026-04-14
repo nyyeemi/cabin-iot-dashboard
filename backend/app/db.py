@@ -8,13 +8,6 @@ from sqlmodel import SQLModel, Session, create_engine
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if not DATABASE_URL:
-    POSTGRES_USER = os.environ.get("POSTGRES_USER", "postgres")
-    POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD", "example")
-    POSTGRES_DB = os.environ.get("POSTGRES_DB", "cabin-iot")
-    POSTGRES_HOST = os.environ.get("POSTGRES_HOST", "localhost")
-    DATABASE_URL = f"postgresql+psycopg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
-
 engine = create_engine(DATABASE_URL, connect_args={"options": "-c timezone=UTC"})
 
 
