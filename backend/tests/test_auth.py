@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 
 def test_missing_api_key(client_no_auth: TestClient):
     res = client_no_auth.get("/overview")
-    assert res.status_code == 401
+    assert res.status_code == 403  # fastapi APIKeyHeader throws 403 when missing
     assert res.json() == {"detail": "Not authenticated"}
 
 
