@@ -50,6 +50,7 @@ jobs:
       - name: Run tests
         env:
           DATABASE_URL: "postgresql+psycopg://dummy:dummy@localhost/dummy"
+          API_KEY: "test-key"
           TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
         run: pytest
   
