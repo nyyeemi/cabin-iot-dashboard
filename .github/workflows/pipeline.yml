@@ -76,6 +76,9 @@ jobs:
   test_frontend:
     needs: changes
     if: ${{ needs.changes.outputs.frontend == 'true' }}
+    defaults:
+      run:
+        working-directory: ./frontend/
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
