@@ -19,6 +19,7 @@ jobs:
       frontend: ${{ steps.filter.outputs.frontend }}
       hub: ${{ steps.filter.outputs.hub }}
     steps:
+    - uses: actions/checkout@v6 # this can be omitted for prs only
     - uses: dorny/paths-filter@v4
       id: filter
       with:
