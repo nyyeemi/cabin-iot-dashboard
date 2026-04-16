@@ -119,5 +119,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger deployment
-        run: curl ${{ secrets.VERCEL_DEPLOY_HOOK }}
+        run: curl -f ${{ secrets.VERCEL_DEPLOY_HOOK }}
 
