@@ -10,7 +10,7 @@ export async function fetchOverview() {
       headers: {
         'X-API-Key': API_KEY!,
       },
-      //next: { revalidate: 120 },
+      next: { revalidate: 60 },
     });
     const overview: OverviewRead = await data.json();
     return overview;
@@ -26,7 +26,7 @@ export async function fetchTelemetry(sensor_id: string, range: 'day' | 'week' | 
       headers: {
         'X-API-Key': API_KEY!,
       },
-      //next: { revalidate: 60 },
+      next: { revalidate: 60 },
     });
     const telemetry: TelemetryRead = await data.json();
     return telemetry.data;
@@ -42,7 +42,7 @@ export async function fetchDeviceOverview(id: string) {
       headers: {
         'X-API-Key': API_KEY!,
       },
-      //next: { revalidate: 60 },
+      next: { revalidate: 60 },
     });
     const deviceDetail: DeviceDetail = await data.json();
     return deviceDetail;
