@@ -1,11 +1,16 @@
+# ruff: noqa: E402 - app imports must come after load_dotenv
 import os
 
-from fastapi.testclient import TestClient
+from dotenv import load_dotenv
+
+load_dotenv()
+
 import pytest
-from sqlmodel import SQLModel, Session, StaticPool, create_engine
-from app.main import app
-from app.db import get_session
 from app.auth import verify_api_key
+from app.db import get_session
+from app.main import app
+from fastapi.testclient import TestClient
+from sqlmodel import Session, SQLModel, StaticPool, create_engine
 
 
 @pytest.fixture(name="session")
@@ -24,7 +29,6 @@ def unauthorized_client_fixture(session: Session):
         return session
 
     app.dependency_overrides[get_session] = get_session_override
-
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()

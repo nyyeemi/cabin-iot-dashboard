@@ -1,0 +1,123 @@
+name: Deployment pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      hub: ${{ steps.filter.outputs.hub }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+            hub:
+              - 'hub/**'
+
+  test_backend:
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
+    defaults:
+      run:
+        working-directory: ./backend/
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install requirements
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Run lint
+        run: ruff check
+      - name: Run tests
+        env:
+          DATABASE_URL: "postgresql+psycopg://dummy:dummy@localhost/dummy"
+          API_KEY: "test-key"
+          TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+        run: pytest
+
+  test_hub:
+    needs: changes
+    if: ${{ needs.changes.outputs.hub == 'true' }}
+    defaults:
+      run:
+        working-directory: ./hub/
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Install requirements
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Run lint
+        run: ruff check
+      - name: Run tests
+        run: pytest
+
+  test_frontend:
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
+    defaults:
+      run:
+        working-directory: ./frontend/
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+        with:
+          version: 10
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Install dependencies
+        run: pnpm install
+      - name: Check style
+        run: pnpm run lint
+      - run: pnpm test
+      - run: pnpm run build
+  
+  deploy_backend:
+    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ''), '#skip-deploy') }}
+    needs: test_backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend/
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+      - name: Install railway CLI
+        run: npm i -g @railway/cli
+      - name: Deploy to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --ci
+        
+  deploy_frontend:
+    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ''), '#skip-deploy') }}
+    needs: test_frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger deployment
+        run: curl ${{ secrets.VERCEL_DEPLOY_HOOK }}
+

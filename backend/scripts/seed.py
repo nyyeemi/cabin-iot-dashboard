@@ -14,6 +14,7 @@ Usage:
     DATABASE_URL=postgresql+psycopg://... python scripts/seed.py
 """
 
+# ruff: noqa: E402
 import math
 import os
 import random
@@ -28,9 +29,8 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-from sqlmodel import Session, SQLModel, create_engine, select
-
 from app.models import Device, Location, Sensor, Telemetry
+from sqlmodel import Session, SQLModel, create_engine, select
 
 # ---------------------------------------------------------------------------
 # Config

@@ -1,11 +1,10 @@
-from contextlib import asynccontextmanager
 from datetime import timedelta
 from typing import Literal
 import uuid
-from fastapi import APIRouter, Depends, FastAPI, HTTPException, status as http_status
+from fastapi import APIRouter, Depends, HTTPException, status as http_status
 from sqlmodel import func, select
 
-from app.db import SessionDep, create_db_and_tables
+from app.db import SessionDep
 from app.models import (
     Device,
     DeviceCreate,

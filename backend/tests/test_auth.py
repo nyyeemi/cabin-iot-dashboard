@@ -3,14 +3,14 @@ from fastapi.testclient import TestClient
 
 def test_missing_api_key(client_no_auth: TestClient):
     res = client_no_auth.get("/overview")
-    assert res.status_code == 403  # fastapi APIKeyHeader throws 403 when missing
-    assert res.json() == {"detail": "Not authenticated"}
+    assert res.status_code == 401
+    assert res.json() == {"detail": "Invalid or missing API key"}
 
 
 def test_invalid_api_key(client_no_auth: TestClient):
     res = client_no_auth.get("/overview", headers={"X-API-Key": "wrong-key-123"})
     assert res.status_code == 401
-    assert res.json() == {"detail": "Invalid api key"}
+    assert res.json() == {"detail": "Invalid or missing API key"}
 
 
 def test_valid_api_key(client_no_auth: TestClient, monkeypatch):
