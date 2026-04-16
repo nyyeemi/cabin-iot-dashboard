@@ -93,7 +93,7 @@ jobs:
         run: pnpm run lint
       - run: pnpm test
       - run: pnpm run build
-  
+
   deploy_backend:
     if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ''), '#skip-deploy') }}
     needs: test_backend
@@ -111,8 +111,8 @@ jobs:
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --ci
-        
+        run: railway up --service cabin-iot-dashboard --ci
+
   deploy_frontend:
     if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ''), '#skip-deploy') }}
     needs: test_frontend
@@ -120,4 +120,3 @@ jobs:
     steps:
       - name: Trigger deployment
         run: curl -f ${{ secrets.VERCEL_DEPLOY_HOOK }}
-
