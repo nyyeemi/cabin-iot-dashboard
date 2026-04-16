@@ -98,9 +98,6 @@ jobs:
     if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message, ''), '#skip-deploy') }}
     needs: test_backend
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend/
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
