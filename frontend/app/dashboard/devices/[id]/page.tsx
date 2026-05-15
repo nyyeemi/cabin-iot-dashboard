@@ -54,13 +54,21 @@ export default async function Page(props: {
             id={id}
           />
 
-          <TimeSeriesChart data={telemetry} range={selectedRange} />
+          {telemetry.length === 0 ? (
+            <p className="py-8 text-center text-sm text-zinc-500">
+              No data for the selected period
+            </p>
+          ) : (
+            <>
+              <TimeSeriesChart data={telemetry} range={selectedRange} />
 
-          <div className="mt-8 grid grid-cols-3 justify-items-center gap-4">
-            <Summary header={'AVERAGE'} value={mean} unit={unit} />
-            <Summary header={'MIN'} value={min} unit={unit} />
-            <Summary header={'MAX'} value={max} unit={unit} />
-          </div>
+              <div className="mt-8 grid grid-cols-3 justify-items-center gap-4">
+                <Summary header={'AVERAGE'} value={mean} unit={unit} />
+                <Summary header={'MIN'} value={min} unit={unit} />
+                <Summary header={'MAX'} value={max} unit={unit} />
+              </div>
+            </>
+          )}
         </div>
         <DeviceDetails deviceData={deviceData} />
       </main>
